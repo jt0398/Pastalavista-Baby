@@ -1,3 +1,4 @@
+
 .welcome {
     text-align: center;
     color: white;
@@ -9,4 +10,11 @@
     padding: 20px;
     color: white;
     position: relative;
+
+body {
+    background: url('../images/beige-tiles.png') repeat;
+}
+
+.title {
+    font-family: 'Source Serif Pro', serif;
 }
