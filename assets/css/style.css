@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> 1102064616727ae773ae3f00e32e5385440d7cb5
 .welcome {
     text-align: center;
     color: white;
@@ -6,10 +9,17 @@
     padding: 40px;
 }
 
+<<<<<<< HEAD
 .btn {
     color: white;
     position: relative;
     padding: 20px;
+=======
+.buttons {
+    padding: 20px;
+    color: white;
+    position: relative;
+>>>>>>> 1102064616727ae773ae3f00e32e5385440d7cb5
 }
 
 body {
