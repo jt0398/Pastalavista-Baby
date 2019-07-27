@@ -1,3 +1,16 @@
+
+.welcome {
+    text-align: center;
+    color: white;
+    position: relative;
+    padding: 40px;
+}
+
+.buttons {
+    padding: 20px;
+    color: white;
+    position: relative;
+
 body {
     background: url('../images/beige-tiles.png') repeat;
 }
