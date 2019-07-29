@@ -1,11 +1,9 @@
-localStorage.setItem("type", "family");
-
-var type = localStorage.getItem("type");
-
 const FAMILY_TYPE = "family";
 const FRIEND_TYPE = "friend";
 
-var cities = ["Edmonton,Alberta", "Victoria,British Columbia", "Winnipeg,Manitoba", "Fredericton,New Brunswick", "St. John's,Newfoundland and Labrador", "Halifax,Nova Scotia", "Toronto,Ontario", "Charlottetown,Prince Edward Island", "Quebec City,Quebec", "Regina,Saskatchewan", "Whitehorse,Yukon", "Iqaluit,Nunavut", "Yellowknife,Northwest Territories"];
+var cities = ["Toronto, Canada", "Bangkok, China", "London, England", "Paris, France", "Dubai, United Arab Emirates", "Singapore, ‎Singapore ", "New York, United States", "Kuala Lumpur, ‎Malaysia", "Tokyo, Japan", "Istanbul, ‎Turkey", "Seoul, Korea", "Antalya, ‎Turkey", "Phuket, Thailand", "Mecca, Saudi Arabia", "Hong Kong, China", "Milan, Italy", "Palma de Mallorca, Spain", "Barcelona, Spain", "Pattaya, Thailand", "Osaka, Japan", "Bali, Indonesian"];
+
+// ["Edmonton,Alberta", "Victoria,British Columbia", "Winnipeg,Manitoba", "Fredericton,New Brunswick", "St. John's,Newfoundland and Labrador", "Halifax,Nova Scotia", "Toronto,Ontario", "Charlottetown,Prince Edward Island", "Quebec City,Quebec", "Regina,Saskatchewan", "Whitehorse,Yukon", "Iqaluit,Nunavut", "Yellowknife,Northwest Territories"];
 
 //["Ajax", "Aurora", "Brampton", "Brock", "Burlington", "Caledon", "Clarington", "East Gwillimbury", "Georgina", "Halton Hills", "King", "Markham", "Milton", "Mississauga", "Newmarket", "Oakville", "Oshawa", "Pickering", "Richmond Hill", "Scugog", "Toronto", "Uxbridge", "Vaughan", "Whitby", "Whitchurch-Stouffville"];
 
@@ -15,9 +13,25 @@ let corsUrl = "https://cors-anywhere.herokuapp.com/";
 $(document).ready(function() {
     if (type === FAMILY_TYPE) {
         $("#typeTitle").text("Family Friendly");
+        $("#type").text("Friend Friendly");
     } else {
         $("#typeTitle").text("Friend Friendly");
+        $("#type").text("Family Friendly");
     }
+
+    updateTitleLink();
+
+    $("#type").on("click", function(event) {
+        event.preventDefault();
+
+        localStorage.setItem("type", $(this).attr("data-type"));
+
+        updateTitleLink();
+
+        let city = localStorage.getItem("city");
+
+        getData(city);
+    });
 
     cities.forEach(function(city) {
         let html = `<a class="dropdown-item city" data-city="${city}">${city}</a>`;
@@ -32,6 +46,8 @@ $(document).ready(function() {
 
     let city = "Toronto,Ontario";
 
+    localStorage.setItem("city", city);
+
     getData(city);
 
     $(".city").on("click", function() {
@@ -45,10 +61,34 @@ $(document).ready(function() {
 
         city = city.replace(" ", "+");
 
+        localStorage.setItem("city", city);
+
         getData(city);
     });
 
 });
+
+function updateTitleLink() {
+    let type = localStorage.getItem("type");
+
+    if (type == undefined) {
+        type = "family";
+    }
+
+    localStorage.setItem("type", type);
+
+    if (type === FAMILY_TYPE) {
+        $("#typeTitle").text("Family Friendly");
+        $("#type").text("Friend Friendly");
+        $("#type").attr("data-type", "friend");
+    } else {
+        $("#typeTitle").text("Friend Friendly");
+        $("#type").text("Family Friendly");
+        $("#type").attr("data-type", "family");
+    }
+
+    return type;
+}
 
 function getData(city) {
     //city += ",Ontario";
@@ -64,7 +104,7 @@ function getData(city) {
  *
  */
 function getFamilySocialEvents(city) {
-    let APIsrc = `https://app.ticketmaster.com/discovery/v2/events?apikey=3Yd3T3a3nBNMGIoErStG8ijjzU0A77um&keyword=family&locale=*&city=${city}&countryCode=CA&includeFamily=yes`;
+    let APIsrc = `https://app.ticketmaster.com/discovery/v2/events?apikey=3Yd3T3a3nBNMGIoErStG8ijjzU0A77um&keyword=family&locale=*&city=${city}&includeFamily=yes`;
 
     APIsrc = corsUrl + APIsrc;
 
@@ -88,7 +128,7 @@ function getFamilySocialEvents(city) {
 
             for (var i = 0; i < count; i++) {
                 let info = res[i].info ? res[i].info : "Not Available";
-                let prSale = res[i].prSale ? res[i].prSale : "Not Available";
+
                 let familySocialEvents = `
                 <div class="col-sm-4">
                     <div class="card">
@@ -110,13 +150,13 @@ function getFamilySocialEvents(city) {
                             }   <br>
                             <strong>Please Note:</strong> ${res[i].pleaseNote}<br>
                             <strong>Price Range(Minimum):</strong> ${
-                              res[i].priceRanges[0].min
+                                res[i].priceRanges != undefined ? res[i].priceRanges[0].min : ""
                             }<br>
                             <strong>Price Range(Maximum):</strong> ${
-                              res[i].priceRanges[0].max
+                                res[i].priceRanges != undefined ? res[i].priceRanges[0].max : ""
                             }<br>
                             <strong>Currency:</strong> ${
-                              res[i].priceRanges[0].currency
+                                res[i].priceRanges != undefined ? res[i].priceRanges[0].currency : ""
                             }<br>
                             <strong>Special Note:</strong> ${info}<br>
                             
@@ -200,7 +240,6 @@ function getCityRestaurants(geoLocation) {
                                     <strong>Rating:</strong> ${response.results[i].rating} (${response.results[i].user_ratings_total} Reviews) <br>
                                     <strong>Open:</strong> ${response.results[i].opening_hours.open_now ? "Yes" : "No"}
                                 </p>
-                                <button class="btn btn-success btn-sm addToMyList">Add to My List</button>
                             </div>
                         </div>
                     </div>
