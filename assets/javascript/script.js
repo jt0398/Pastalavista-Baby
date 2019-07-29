@@ -1,104 +1,178 @@
+localStorage.setItem("type", "family");
+
+var type = localStorage.getItem("type");
+
+const FAMILY_TYPE = "family";
+const FRIEND_TYPE = "friend";
+
+var cities = ["Edmonton,Alberta", "Victoria,British Columbia", "Winnipeg,Manitoba", "Fredericton,New Brunswick", "St. John's,Newfoundland and Labrador", "Halifax,Nova Scotia", "Toronto,Ontario", "Charlottetown,Prince Edward Island", "Quebec City,Quebec", "Regina,Saskatchewan", "Whitehorse,Yukon", "Iqaluit,Nunavut", "Yellowknife,Northwest Territories"];
+
+//["Ajax", "Aurora", "Brampton", "Brock", "Burlington", "Caledon", "Clarington", "East Gwillimbury", "Georgina", "Halton Hills", "King", "Markham", "Milton", "Mississauga", "Newmarket", "Oakville", "Oshawa", "Pickering", "Richmond Hill", "Scugog", "Toronto", "Uxbridge", "Vaughan", "Whitby", "Whitchurch-Stouffville"];
+
+
+let corsUrl = "https://cors-anywhere.herokuapp.com/";
+
+$(document).ready(function() {
+    if (type === FAMILY_TYPE) {
+        $("#typeTitle").text("Family Friendly");
+    } else {
+        $("#typeTitle").text("Friend Friendly");
+    }
+
+    cities.forEach(function(city) {
+        let html = `<a class="dropdown-item city" data-city="${city}">${city}</a>`;
+        let menu = $(html);
+
+        if (city.indexOf("Toronto") >= 0) {
+            menu.addClass("active");
+        }
+
+        $(".listCities").append(menu);
+    })
+
+    let city = "Toronto,Ontario";
+
+    getData(city);
+
+    $(".city").on("click", function() {
+        $(this).siblings(".active").removeClass("active");
+
+        $(this).addClass("active");
+
+        let city = $(this).text();
+
+        $(this).parent().siblings(".btn").text(city);
+
+        city = city.replace(" ", "+");
+
+        getData(city);
+    });
+
+});
+
+function getData(city) {
+    //city += ",Ontario";
+    $("#restaurants").empty();
+    $("#socialEvents").empty();
+    getCityGeoLocation(city);
+    getFamilySocialEvents(city);
+}
 
 //Objective:
 /*When users click "Friends" button on the main loaded web page, it should bring them to family-Friendly.html web page and automatically give them 3 social events options displayed on the web page
  *
  *
  */
+function getFamilySocialEvents(city) {
+    let APIsrc = `https://app.ticketmaster.com/discovery/v2/events?apikey=3Yd3T3a3nBNMGIoErStG8ijjzU0A77um&keyword=family&locale=*&city=${city}&countryCode=CA&includeFamily=yes`;
 
-let corsUrl = 'https://cors-anywhere.herokuapp.com/';
+    APIsrc = corsUrl + APIsrc;
 
-$(document).ready(function() {
-    let city = "Toronto,+Ontario";
+    console.log(APIsrc);
 
-    $("#restaurants").empty();
-    getCityGeoLocation(city);
-    getFamilySocialEvents();
-});
-function getFamilySocialEvents() {
-  let APIsrc = `https://app.ticketmaster.com/discovery/v2/events?apikey=3Yd3T3a3nBNMGIoErStG8ijjzU0A77um&keyword=family&locale=*&city=toronto&countryCode=CA&includeFamily=yes`;
+    $.ajax({
+        url: APIsrc,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    }).then(function(response) {
 
-  //APIUrl = corsUrl + APIUrl;
+        if (response.page.totalPages != 0) {
+            let res = response._embedded.events;
 
-  $.ajax({
-    url: APIsrc
-  }).then(function(response) {
-    let res = response._embedded.events;
-    console.log(res[0].sales.public, res[0].sales.presales, res[0].name);
-    for (var i = 0; i < 3; i++) {
-      let info = res[i].info ? res[i].info : "Not Available";
-      let prSale = res[i].prSale ? res[i].prSale : "Not Available";
-      let familySocialEvents = `
-        <div class="col-sm-4">
-                <div class="card container-fluid">
-                    <img src="${res[i].images[0].url}" class="card-img-top">
-                    <div class="card-body">
-                        <p class="card-text">
-                        <strong>Event:</strong> ${res[i].name}<br>
-                        
-                        <strong>Start Date:</strong> ${
-                          res[i].dates.start.localDate
-                        }<br>
-                        <strong>Start Time:</strong> ${
-                          res[i].dates.start.localTime
-                        }<br>
-                        <strong>Venue:</strong> ${
-                          res[i]._embedded.venues[0].address.line1
-                        }, ${res[i]._embedded.venues[0].city.name},${
-        res[i]._embedded.venues[0].postalCode
-      }   <br>
-                        <strong>Please Note:</strong> ${res[i].pleaseNote}<br>
-                        <strong>Price Range(Minimum):</strong> ${
-                          res[i].priceRanges[0].min
-                        }<br>
-                        <strong>Price Range(Maximum):</strong> ${
-                          res[i].priceRanges[0].max
-                        }<br>
-                        <strong>Currency:</strong> ${
-                          res[i].priceRanges[0].currency
-                        }<br>
-                        <strong>Special Note:</strong> ${info}<br>
-                        
-                        </p>
-                        
+            console.log(res[0].sales.public, res[0].sales.presales, res[0].name);
+
+            let count = res.length;
+
+            if (count > 3) {
+                count = 3;
+            }
+
+            for (var i = 0; i < count; i++) {
+                let info = res[i].info ? res[i].info : "Not Available";
+                let prSale = res[i].prSale ? res[i].prSale : "Not Available";
+                let familySocialEvents = `
+                <div class="col-sm-4">
+                    <div class="card">
+                        <img src="${res[i].images[0].url}" class="card-img-top">
+                        <div class="card-body">
+                            <p class="card-text">
+                            <strong>Event:</strong> ${res[i].name}<br>
+                            
+                            <strong>Start Date:</strong> ${
+                              res[i].dates.start.localDate
+                            }<br>
+                            <strong>Start Time:</strong> ${
+                              res[i].dates.start.localTime
+                            }<br>
+                            <strong>Venue:</strong> ${
+                              res[i]._embedded.venues[0].address.line1
+                            }, ${res[i]._embedded.venues[0].city.name},${
+                                    res[i]._embedded.venues[0].postalCode
+                            }   <br>
+                            <strong>Please Note:</strong> ${res[i].pleaseNote}<br>
+                            <strong>Price Range(Minimum):</strong> ${
+                              res[i].priceRanges[0].min
+                            }<br>
+                            <strong>Price Range(Maximum):</strong> ${
+                              res[i].priceRanges[0].max
+                            }<br>
+                            <strong>Currency:</strong> ${
+                              res[i].priceRanges[0].currency
+                            }<br>
+                            <strong>Special Note:</strong> ${info}<br>
+                            
+                            </p>
+                            
+                        </div>
                     </div>
                 </div>
-            </div>
-        `;
-      $("#socialEvents").append(familySocialEvents);
-    }
-  });
+            `;
+
+                $("#socialEvents").append(familySocialEvents);
+            }
+        } else {
+            $("#socialEvents").append('<div class="col-sm-4">No events found.</div>');
+        }
+
+    });
 }
 
 
-let apiKey = 'AIzaSyCjnZvvcW5Eoy-OCXMhN2vJZuanidwbOIU'
+let googleAPIKey = 'AIzaSyCjnZvvcW5Eoy-OCXMhN2vJZuanidwbOIU';
 
 
 function getCityGeoLocation(city) {
-    let APIUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${city}&key=${apiKey}`;
+    let APIUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${city}&key=${googleAPIKey}`;
 
     let geoLocation;
 
 
-    $.ajax({ url: APIUrl }).then(function(response) {
+    $.ajax({ url: APIUrl })
+        .then(function(response) {
 
-        let latitude = response.results[0].geometry.location.lat;
-        let longitude = response.results[0].geometry.location.lng;
+            let latitude = response.results[0].geometry.location.lat;
+            let longitude = response.results[0].geometry.location.lng;
 
 
-        geoLocation = latitude + "," + longitude;
+            geoLocation = latitude + "," + longitude;
 
-        return response;
+            return response;
 
-    }).then(function(response) {
-        return getCityRestaurants(geoLocation);
+        }).then(function(response) {
+            getCityRestaurants(geoLocation);
 
-    }).fail(function(jqXHR, textStatus, errorThrown) {
-        console.log(textStatus, errorThrown);
-    });
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+            console.log(textStatus, errorThrown);
+        });
 }
 
 function getCityRestaurants(geoLocation) {
-    let APIUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${geoLocation}&type=restaurant&keyword=kids,family&key=${apiKey}&rankby=distance`;
+    if (type === FAMILY_TYPE) {
+        $("#typeTitle").text("Family Friendly");
+    } else {
+        $("#typeTitle").text("Friend Friendly");
+    }
+
+    let APIUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${geoLocation}&type=restaurant&keyword=kids,family&key=${googleAPIKey}&rankby=distance`;
 
     APIUrl = corsUrl + APIUrl;
 
@@ -106,33 +180,46 @@ function getCityRestaurants(geoLocation) {
             url: APIUrl
         }).then(function(response) {
 
-            for (let i = 0; i < 3; i++) {
+            if (response.results.length > 0) {
 
-                let html = `
-                <div class="col-12 col-md-4 mt-2">
-                    <div class="card" data-placeid="${response.results[i].place_id}">
-                        <img src="" class="card-img-top img-fluid">
-                        <div class="card-body">
-                            <h5 class="card-title">${response.results[i].name}</h5>
-                            <p class="card-text">
-                                <strong>Rating:</strong> ${response.results[i].rating} (${response.results[i].user_ratings_total} Reviews) <br>
-                                <strong>Open:</strong> ${response.results[i].opening_hours.open_now ? "Yes" : "No"}
-                            </p>
-                            <button class="btn btn-success btn-sm addToMyList">Add to My List</button>
+                let count = response.results.length;
+
+                if (count > 3) {
+                    count = 3;
+                }
+
+                for (let i = 0; i < count; i++) {
+
+                    let html = `
+                    <div class="col-12 col-md-4 mt-2">
+                        <div class="card" data-placeid="${response.results[i].place_id}">
+                            <img src="" class="card-img-top" width="340.33" height="190.58">
+                            <div class="card-body">
+                                <h5 class="card-title">${response.results[i].name}</h5>
+                                <p class="card-text">
+                                    <strong>Rating:</strong> ${response.results[i].rating} (${response.results[i].user_ratings_total} Reviews) <br>
+                                    <strong>Open:</strong> ${response.results[i].opening_hours.open_now ? "Yes" : "No"}
+                                </p>
+                                <button class="btn btn-success btn-sm addToMyList">Add to My List</button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
+                `;
 
-                $("#restaurants").append(html);
+                    $("#restaurants").append(html);
+                }
+            } else {
+                $("#restaurants").append('<div class="col-sm-4">No restaurants found.</div>');
             }
 
             return response;
 
         })
         .then(function(response) {
-            getRestaurantDetails(response);
-            getRestaurantPhoto(response);
+            if (response.results != "undefined") {
+                getRestaurantDetails(response);
+                getRestaurantPhoto(response);
+            }
         })
         .fail(function(jqXHR, textStatus, errorThrown) {
             console.log(textStatus, errorThrown);
@@ -145,7 +232,7 @@ function getRestaurantDetails(response) {
 
         let placeID = response.results[i].place_id;
 
-        let APIUrl = `https://maps.googleapis.com/maps/api/place/details/json?placeid=${placeID}&key=${apiKey}`;
+        let APIUrl = `https://maps.googleapis.com/maps/api/place/details/json?placeid=${placeID}&key=${googleAPIKey}`;
 
         APIUrl = corsUrl + APIUrl;
 
@@ -179,7 +266,7 @@ function getRestaurantPhoto(response) {
 
         let photoRef = response.results[i].photos[0].photo_reference;
 
-        let APIUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=6000&photoreference=${photoRef}&key=${apiKey}`;
+        let APIUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=6000&photoreference=${photoRef}&key=${googleAPIKey}`;
 
         APIUrl = corsUrl + APIUrl;
 
@@ -199,8 +286,6 @@ function getRestaurantPhoto(response) {
                 let imgRestaurant = $(`#restaurants div[data-placeid='${placeID}'] img`);
 
                 imgRestaurant.attr("src", imgUrl);
-
-                console.log(imgUrl);
             })
             .fail(function(jqXHR, textStatus, errorThrown) {
                 console.log(textStatus, errorThrown);
@@ -209,4 +294,3 @@ function getRestaurantPhoto(response) {
     }
 
 }
-
