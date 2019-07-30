@@ -93,18 +93,6 @@ function updateTitleLink() {
     return type;
 }
 
-function selectCity(city) {
-    let item = $(`.city[data-city="${city}"]`);
-
-    console.log(item);
-
-    item.siblings(".active").removeClass("active");
-
-    item.addClass("active");
-
-    item.parent().siblings(".btn").text(city);
-}
-
 function getData(city) {
     let type = localStorage.getItem("type");
 
@@ -122,11 +110,7 @@ function getData(city) {
     getSocialEvents(city, keyword);
 }
 
-//Objective:
-/*When users click "Friends" button on the main loaded web page, it should bring them to family-Friendly.html web page and automatically give them 3 social events options displayed on the web page
- *
- *
- */
+//Get social data
 function getSocialEvents(city, keyword) {
     let APIsrc = `https://app.ticketmaster.com/discovery/v2/events?apikey=3Yd3T3a3nBNMGIoErStG8ijjzU0A77um&keyword=${keyword}&locale=*&city=${city}&includeFamily=yes`;
 
