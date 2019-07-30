@@ -1,48 +1,17 @@
 const FAMILY_TYPE = "family";
 const FRIEND_TYPE = "friend";
 
-var cities = ["Toronto, Canada", "Bangkok, China", "London, England", "Paris, France", "Dubai, United Arab Emirates", "Singapore, ‎Singapore ", "New York, United States", "Kuala Lumpur, ‎Malaysia", "Tokyo, Japan", "Istanbul, ‎Turkey", "Seoul, Korea", "Antalya, ‎Turkey", "Phuket, Thailand", "Mecca, Saudi Arabia", "Hong Kong, China", "Milan, Italy", "Palma de Mallorca, Spain", "Barcelona, Spain", "Pattaya, Thailand", "Osaka, Japan", "Bali, Indonesian"];
+//List of cities
+var cities = ["Toronto, Canada", "London, England", "Paris, France", "New York, United States", "Barcelona, Spain"];
 
-// ["Edmonton,Alberta", "Victoria,British Columbia", "Winnipeg,Manitoba", "Fredericton,New Brunswick", "St. John's,Newfoundland and Labrador", "Halifax,Nova Scotia", "Toronto,Ontario", "Charlottetown,Prince Edward Island", "Quebec City,Quebec", "Regina,Saskatchewan", "Whitehorse,Yukon", "Iqaluit,Nunavut", "Yellowknife,Northwest Territories"];
+//cities = ["Toronto, Canada", "Bangkok, China", "London, England", "Paris, France", "Dubai, United Arab Emirates", "Singapore, ‎Singapore ", "New York, United States", "Kuala Lumpur, ‎Malaysia", "Tokyo, Japan", "Istanbul, ‎Turkey", "Seoul, Korea", "Antalya, ‎Turkey", "Phuket, Thailand", "Mecca, Saudi Arabia", "Hong Kong, China", "Milan, Italy", "Palma de Mallorca, Spain", "Barcelona, Spain", "Pattaya, Thailand", "Osaka, Japan", "Bali, Indonesian"];
 
-//["Ajax", "Aurora", "Brampton", "Brock", "Burlington", "Caledon", "Clarington", "East Gwillimbury", "Georgina", "Halton Hills", "King", "Markham", "Milton", "Mississauga", "Newmarket", "Oakville", "Oshawa", "Pickering", "Richmond Hill", "Scugog", "Toronto", "Uxbridge", "Vaughan", "Whitby", "Whitchurch-Stouffville"];
-
-
+//Fix CORS error
 let corsUrl = "https://cors-anywhere.herokuapp.com/";
 
 $(document).ready(function() {
-    if (type === FAMILY_TYPE) {
-        $("#typeTitle").text("Family Friendly");
-        $("#type").text("Friend Friendly");
-    } else {
-        $("#typeTitle").text("Friend Friendly");
-        $("#type").text("Family Friendly");
-    }
-
+    //Update page title and link
     updateTitleLink();
-
-    $("#type").on("click", function(event) {
-        event.preventDefault();
-
-        localStorage.setItem("type", $(this).attr("data-type"));
-
-        updateTitleLink();
-
-        let city = localStorage.getItem("city");
-
-        getData(city);
-    });
-
-    cities.forEach(function(city) {
-        let html = `<a class="dropdown-item city" data-city="${city}">${city}</a>`;
-        let menu = $(html);
-
-        if (city.indexOf("Toronto") >= 0) {
-            menu.addClass("active");
-        }
-
-        $(".listCities").append(menu);
-    })
 
     let city = "Toronto,Ontario";
 
@@ -50,24 +19,58 @@ $(document).ready(function() {
 
     getData(city);
 
+    $("#type").on("click", function(event) {
+        event.preventDefault();
+
+        localStorage.setItem("type", $(this).attr("data-type"));
+
+        //Update page title and link
+        updateTitleLink();
+
+        let city = localStorage.getItem("city");
+
+        getData(city);
+    });
+
+    //On load create the dropdown city list
+    cities.forEach(function(city) {
+        let html = `<a class="dropdown-item city" data-city="${city}">${city}</a>`;
+        let menu = $(html);
+
+        //Select Toronto by default
+        if (city.indexOf("Toronto") >= 0) {
+            menu.addClass("active");
+        }
+
+        $(".listCities").append(menu);
+    })
+
+    //When user selects a city
     $(".city").on("click", function() {
+        //Unselect other cities
         $(this).siblings(".active").removeClass("active");
 
+        //Make selected city active
         $(this).addClass("active");
 
+        //Get the city text
         let city = $(this).text();
 
+        //Update button text
         $(this).parent().siblings(".btn").text(city);
 
         city = city.replace(" ", "+");
 
+        //Store user selection in local storage
         localStorage.setItem("city", city);
 
+        //Get city data
         getData(city);
     });
 
 });
 
+//Update the page title and type link
 function updateTitleLink() {
     let type = localStorage.getItem("type");
 
@@ -90,12 +93,33 @@ function updateTitleLink() {
     return type;
 }
 
+function selectCity(city) {
+    let item = $(`.city[data-city="${city}"]`);
+
+    console.log(item);
+
+    item.siblings(".active").removeClass("active");
+
+    item.addClass("active");
+
+    item.parent().siblings(".btn").text(city);
+}
+
 function getData(city) {
-    //city += ",Ontario";
+    let type = localStorage.getItem("type");
+
+    let keyword;
+
+    if (type === FRIEND_TYPE) {
+        keyword = "friends";
+    } else {
+        keyword = "family";
+    }
+
     $("#restaurants").empty();
     $("#socialEvents").empty();
-    getCityGeoLocation(city);
-    getFamilySocialEvents(city);
+    getCityGeoLocation(city, keyword);
+    getSocialEvents(city, keyword);
 }
 
 //Objective:
@@ -103,12 +127,10 @@ function getData(city) {
  *
  *
  */
-function getFamilySocialEvents(city) {
-    let APIsrc = `https://app.ticketmaster.com/discovery/v2/events?apikey=3Yd3T3a3nBNMGIoErStG8ijjzU0A77um&keyword=family&locale=*&city=${city}&includeFamily=yes`;
+function getSocialEvents(city, keyword) {
+    let APIsrc = `https://app.ticketmaster.com/discovery/v2/events?apikey=3Yd3T3a3nBNMGIoErStG8ijjzU0A77um&keyword=${keyword}&locale=*&city=${city}&includeFamily=yes`;
 
     APIsrc = corsUrl + APIsrc;
-
-    console.log(APIsrc);
 
     $.ajax({
         url: APIsrc,
@@ -117,8 +139,6 @@ function getFamilySocialEvents(city) {
 
         if (response.page.totalPages != 0) {
             let res = response._embedded.events;
-
-            console.log(res[0].sales.public, res[0].sales.presales, res[0].name);
 
             let count = res.length;
 
@@ -130,7 +150,7 @@ function getFamilySocialEvents(city) {
                 let info = res[i].info ? res[i].info : "Not Available";
 
                 let familySocialEvents = `
-                <div class="col-sm-4">
+                <div class="col-12 col-md-4 mt-2">
                     <div class="card">
                         <img src="${res[i].images[0].url}" class="card-img-top">
                         <div class="card-body">
@@ -138,25 +158,25 @@ function getFamilySocialEvents(city) {
                             <strong>Event:</strong> ${res[i].name}<br>
                             
                             <strong>Start Date:</strong> ${
-                              res[i].dates.start.localDate
+                                res[i].dates ? res[i].dates.start.localDate : "Not Available"
                             }<br>
                             <strong>Start Time:</strong> ${
-                              res[i].dates.start.localTime
+                                res[i].dates ? res[i].dates.start.localTime : "Not Available"
                             }<br>
                             <strong>Venue:</strong> ${
-                              res[i]._embedded.venues[0].address.line1
-                            }, ${res[i]._embedded.venues[0].city.name},${
-                                    res[i]._embedded.venues[0].postalCode
+                              res[i]._embedded.venues && res[i]._embedded.venues[0].address ? res[i]._embedded.venues[0].address.line1 : "Not Available"
+                            }, ${ res[i]._embedded.venues && res[i]._embedded.venues[0].city ? res[i]._embedded.venues[0].city.name : ""},${
+                                res[i]._embedded.venues && res[i]._embedded.venues[0].postalCode ? res[i]._embedded.venues[0].postalCode : ""
                             }   <br>
-                            <strong>Please Note:</strong> ${res[i].pleaseNote}<br>
+                            <strong>Please Note:</strong> ${res[i].pleaseNote ? res[i].pleaseNote : ""}<br>
                             <strong>Price Range(Minimum):</strong> ${
-                                res[i].priceRanges != undefined ? res[i].priceRanges[0].min : ""
+                                res[i].priceRanges ? res[i].priceRanges[0].min : "Not Available"
                             }<br>
                             <strong>Price Range(Maximum):</strong> ${
-                                res[i].priceRanges != undefined ? res[i].priceRanges[0].max : ""
+                                res[i].priceRanges ? res[i].priceRanges[0].max : "Not Available"
                             }<br>
                             <strong>Currency:</strong> ${
-                                res[i].priceRanges != undefined ? res[i].priceRanges[0].currency : ""
+                                res[i].priceRanges ? res[i].priceRanges[0].currency : "Not Available"
                             }<br>
                             <strong>Special Note:</strong> ${info}<br>
                             
@@ -180,7 +200,7 @@ function getFamilySocialEvents(city) {
 let googleAPIKey = 'AIzaSyCjnZvvcW5Eoy-OCXMhN2vJZuanidwbOIU';
 
 
-function getCityGeoLocation(city) {
+function getCityGeoLocation(city, keyword) {
     let APIUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${city}&key=${googleAPIKey}`;
 
     let geoLocation;
@@ -198,21 +218,16 @@ function getCityGeoLocation(city) {
             return response;
 
         }).then(function(response) {
-            getCityRestaurants(geoLocation);
+            getCityRestaurants(geoLocation, keyword);
 
         }).fail(function(jqXHR, textStatus, errorThrown) {
             console.log(textStatus, errorThrown);
         });
 }
 
-function getCityRestaurants(geoLocation) {
-    if (type === FAMILY_TYPE) {
-        $("#typeTitle").text("Family Friendly");
-    } else {
-        $("#typeTitle").text("Friend Friendly");
-    }
+function getCityRestaurants(geoLocation, keyword) {
 
-    let APIUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${geoLocation}&type=restaurant&keyword=kids,family&key=${googleAPIKey}&rankby=distance`;
+    let APIUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${geoLocation}&type=restaurant&keyword=${keyword}&key=${googleAPIKey}&rankby=distance`;
 
     APIUrl = corsUrl + APIUrl;
 
@@ -237,8 +252,8 @@ function getCityRestaurants(geoLocation) {
                             <div class="card-body">
                                 <h5 class="card-title">${response.results[i].name}</h5>
                                 <p class="card-text">
-                                    <strong>Rating:</strong> ${response.results[i].rating} (${response.results[i].user_ratings_total} Reviews) <br>
-                                    <strong>Open:</strong> ${response.results[i].opening_hours.open_now ? "Yes" : "No"}
+                                    <strong>Rating:</strong> ${response.results[i].rating ? response.results[i].rating : "0"} (${response.results[i].user_ratings_total ? response.results[i].user_ratings_total : "0" } Reviews) <br>
+                                    <strong>Open:</strong> ${response.results[i].opening_hours && response.results[i].opening_hours.open_now ? "Yes" : "No"}
                                 </p>
                             </div>
                         </div>
@@ -255,7 +270,7 @@ function getCityRestaurants(geoLocation) {
 
         })
         .then(function(response) {
-            if (response.results != "undefined") {
+            if (response.results) {
                 getRestaurantDetails(response);
                 getRestaurantPhoto(response);
             }
@@ -267,7 +282,13 @@ function getCityRestaurants(geoLocation) {
 
 function getRestaurantDetails(response) {
 
-    for (let i = 0; i < 3; i++) {
+    let count = response.results.length;
+
+    if (count > 3) {
+        count = 3;
+    }
+
+    for (let i = 0; i < count; i++) {
 
         let placeID = response.results[i].place_id;
 
@@ -282,9 +303,9 @@ function getRestaurantDetails(response) {
 
                 let divRestaurant = $(`#restaurants div[data-placeid='${placeID}'] .card-text`);
 
-                let html = `<strong>Address:</strong> ${response2.result.formatted_address}<br>
-                        <strong>Phone:</strong> ${response2.result.formatted_phone_number}<br>
-                `;
+                let html = `<strong>Address:</strong> ${response2.result.formatted_address ? response2.result.formatted_address : "Not Available"}<br>
+                    <strong>Phone:</strong> ${response2.result.formatted_phone_number ? response2.result.formatted_phone_number : "Not Available"}<br>
+            `;
 
                 divRestaurant.prepend(html);
 
@@ -303,32 +324,40 @@ function getRestaurantPhoto(response) {
 
         let placeID = response.results[i].place_id;
 
-        let photoRef = response.results[i].photos[0].photo_reference;
+        let divRestaurant = $(`#restaurants div[data-placeid='${placeID}']`);
 
-        let APIUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=6000&photoreference=${photoRef}&key=${googleAPIKey}`;
+        let imgRestaurant = $(`#restaurants div[data-placeid='${placeID}'] img`);
 
-        APIUrl = corsUrl + APIUrl;
+        if (response.results[i].photos) {
+            let photoRef = response.results[i].photos[0].photo_reference;
 
-        let imgUrl;
+            let APIUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=6000&photoreference=${photoRef}&key=${googleAPIKey}`;
 
-        $.ajax({
-                url: APIUrl,
-                contentType: "text/html;charset=utf-8",
-                // dataType: "json",
-                success: function(data, textStatus, request) {
-                    imgUrl = request.getResponseHeader('x-final-url');
-                },
-            })
-            .then(function(response2) {
-                let divRestaurant = $(`#restaurants div[data-placeid='${placeID}']`);
+            APIUrl = corsUrl + APIUrl;
 
-                let imgRestaurant = $(`#restaurants div[data-placeid='${placeID}'] img`);
+            let imgUrl;
 
-                imgRestaurant.attr("src", imgUrl);
-            })
-            .fail(function(jqXHR, textStatus, errorThrown) {
-                console.log(textStatus, errorThrown);
-            });
+            $.ajax({
+                    url: APIUrl,
+                    contentType: "text/html;charset=utf-8",
+                    // dataType: "json",
+                    success: function(data, textStatus, request) {
+                        imgUrl = request.getResponseHeader('x-final-url');
+                    },
+                })
+                .then(function(response2) {
+                    imgRestaurant.attr("src", imgUrl);
+                })
+                .fail(function(jqXHR, textStatus, errorThrown) {
+                    console.log(textStatus, errorThrown);
+                });
+        } else {
+            imgUrl = "assets/images/defaultRestaurant.jpg";
+
+            imgRestaurant.attr("src", imgUrl);
+        }
+
+
 
     }
 
