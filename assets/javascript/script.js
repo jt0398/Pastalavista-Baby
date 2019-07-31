@@ -4,14 +4,15 @@ const FRIEND_TYPE = "friend";
 //List of cities
 var cities = ["Toronto, Canada", "London, England", "Paris, France", "New York, United States", "Barcelona, Spain"];
 
+//cities = ["Toronto, Canada", "Bangkok, China", "London, England", "Paris, France", "Dubai, United Arab Emirates", "Singapore, ‎Singapore ", "New York, United States", "Kuala Lumpur, ‎Malaysia", "Tokyo, Japan", "Istanbul, ‎Turkey", "Seoul, Korea", "Antalya, ‎Turkey", "Phuket, Thailand", "Mecca, Saudi Arabia", "Hong Kong, China", "Milan, Italy", "Palma de Mallorca, Spain", "Barcelona, Spain", "Pattaya, Thailand", "Osaka, Japan", "Bali, Indonesian"];
+
 //Fix CORS error
-let corsUrl = ""; //"https://cors-anywhere.herokuapp.com/";
+let corsUrl = "" //"https://cors-anywhere.herokuapp.com/";
 
 $(document).ready(function() {
     //Update page title and link
     updateTitleLink();
 
-    //Toronto is default city
     let city = "Toronto,Ontario";
 
     localStorage.setItem("city", city);
@@ -88,7 +89,6 @@ function updateTitleLink() {
     return type;
 }
 
-//Get restaurant and social event data
 function getData(city) {
     let type = localStorage.getItem("type");
 
@@ -106,7 +106,7 @@ function getData(city) {
     getSocialEvents(city, keyword);
 }
 
-//Use Ticketmaster API to get social data
+//Get social data
 function getSocialEvents(city, keyword) {
     let APIsrc = `https://app.ticketmaster.com/discovery/v2/events?apikey=3Yd3T3a3nBNMGIoErStG8ijjzU0A77um&keyword=${keyword}&locale=*&city=${city}&includeFamily=yes`;
 
@@ -120,15 +120,12 @@ function getSocialEvents(city, keyword) {
         if (response.page.totalPages != 0) {
             let res = response._embedded.events;
 
-            //Get the number of results
-            let count = res.results.length;
+            let count = res.length;
 
-            //If the result is more than 3, only take the first 3
             if (count > 3) {
                 count = 3;
             }
 
-            //Loop thru the result and display event detail 
             for (var i = 0; i < count; i++) {
                 let info = res[i].info ? res[i].info : "Not Available";
 
@@ -173,7 +170,6 @@ function getSocialEvents(city, keyword) {
                 $("#socialEvents").append(familySocialEvents);
             }
         } else {
-            //No events found
             $("#socialEvents").append('<div class="col-sm-4">No events found.</div>');
         }
 
@@ -183,7 +179,7 @@ function getSocialEvents(city, keyword) {
 
 let googleAPIKey = 'AIzaSyCjnZvvcW5Eoy-OCXMhN2vJZuanidwbOIU';
 
-//Use Google Geocode to get city geo coordinates
+
 function getCityGeoLocation(city, keyword) {
     let APIUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${city}&key=${googleAPIKey}`;
 
@@ -202,7 +198,6 @@ function getCityGeoLocation(city, keyword) {
             return response;
 
         }).then(function(response) {
-            //Get list of restaurants in a city
             getCityRestaurants(geoLocation, keyword);
 
         }).fail(function(jqXHR, textStatus, errorThrown) {
@@ -210,7 +205,6 @@ function getCityGeoLocation(city, keyword) {
         });
 }
 
-//Use Google Nearby API to get restaurants in a city
 function getCityRestaurants(geoLocation, keyword) {
 
     let APIUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${geoLocation}&type=restaurant&keyword=${keyword}&key=${googleAPIKey}&rankby=distance`;
@@ -223,15 +217,12 @@ function getCityRestaurants(geoLocation, keyword) {
 
             if (response.results.length > 0) {
 
-                //Get the number of results
                 let count = response.results.length;
 
-                //If the result is more than 3, only take the first 3
                 if (count > 3) {
                     count = 3;
                 }
 
-                //Loop thru the result and display restaurant detail 
                 for (let i = 0; i < count; i++) {
 
                     let html = `
@@ -252,7 +243,6 @@ function getCityRestaurants(geoLocation, keyword) {
                     $("#restaurants").append(html);
                 }
             } else {
-                //No restaurants are found in the city
                 $("#restaurants").append('<div class="col-sm-4">No restaurants found.</div>');
             }
 
@@ -261,9 +251,7 @@ function getCityRestaurants(geoLocation, keyword) {
         })
         .then(function(response) {
             if (response.results) {
-                //Get more details about the restaurant
                 getRestaurantDetails(response);
-                //Get restaurant photo
                 getRestaurantPhoto(response);
             }
         })
@@ -272,21 +260,16 @@ function getCityRestaurants(geoLocation, keyword) {
         });
 }
 
-//Uses Google Place Detail API to get more restaurant details such as address and phone number
 function getRestaurantDetails(response) {
 
-    //Get the number of results
     let count = response.results.length;
 
-    //If the result is more than 3, only take the first 3
     if (count > 3) {
         count = 3;
     }
 
-    //Loop thru the result and display restaurant detail 
     for (let i = 0; i < count; i++) {
 
-        //Unique restaurant ID
         let placeID = response.results[i].place_id;
 
         let APIUrl = `https://maps.googleapis.com/maps/api/place/details/json?placeid=${placeID}&key=${googleAPIKey}`;
@@ -315,15 +298,14 @@ function getRestaurantDetails(response) {
 
 }
 
-//Uses Google Place Photo to get restaurant picture
 function getRestaurantPhoto(response) {
 
     for (let i = 0; i < 3; i++) {
 
-        //Unique restaurant ID
         let placeID = response.results[i].place_id;
 
-        //Get image element
+        let divRestaurant = $(`#restaurants div[data-placeid='${placeID}']`);
+
         let imgRestaurant = $(`#restaurants div[data-placeid='${placeID}'] img`);
 
         if (response.results[i].photos) {
@@ -340,19 +322,16 @@ function getRestaurantPhoto(response) {
                     contentType: "text/html;charset=utf-8",
                     // dataType: "json",
                     success: function(data, textStatus, request) {
-                        //Google redirect to another page. Image URL can be found in the Response Header x-final-url
                         imgUrl = request.getResponseHeader('x-final-url');
                     },
                 })
                 .then(function(response2) {
-                    //Sets image URL
                     imgRestaurant.attr("src", imgUrl);
                 })
                 .fail(function(jqXHR, textStatus, errorThrown) {
                     console.log(textStatus, errorThrown);
                 });
         } else {
-            //Sets a default image if Google doesn't provide any
             imgUrl = "assets/images/defaultRestaurant.jpg";
 
             imgRestaurant.attr("src", imgUrl);
