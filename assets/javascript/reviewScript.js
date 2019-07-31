@@ -89,10 +89,10 @@ $(document).ready(function() {
     $(".type").on("click", function(event) {
         event.preventDefault();
 
-        localStorage.setItem("type", $(this).attr("data-type"));
+        let type = $(this).attr("data-type");
 
-        if (type == undefined) {
-            window.location = "listfriendly.html";
-        }
+        localStorage.setItem("type", type);
+
+        window.location = "listfriendly.html";
     });
 });

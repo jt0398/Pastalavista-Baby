@@ -7,7 +7,7 @@ var cities = ["Toronto, Canada", "London, England", "Paris, France", "New York, 
 //cities = ["Toronto, Canada", "Bangkok, China", "London, England", "Paris, France", "Dubai, United Arab Emirates", "Singapore, ‎Singapore ", "New York, United States", "Kuala Lumpur, ‎Malaysia", "Tokyo, Japan", "Istanbul, ‎Turkey", "Seoul, Korea", "Antalya, ‎Turkey", "Phuket, Thailand", "Mecca, Saudi Arabia", "Hong Kong, China", "Milan, Italy", "Palma de Mallorca, Spain", "Barcelona, Spain", "Pattaya, Thailand", "Osaka, Japan", "Bali, Indonesian"];
 
 //Fix CORS error
-let corsUrl = "https://cors-anywhere.herokuapp.com/";
+let corsUrl = "" //"https://cors-anywhere.herokuapp.com/";
 
 $(document).ready(function() {
     //Update page title and link
