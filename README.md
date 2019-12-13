@@ -24,8 +24,7 @@ Based on their selection in step 1, they will be provided with the top 3 restaur
 
 ## Technology Stack
 
-HTML, CSS, BOOTSTRAP, JQUERY, APIs
-APIs userd are TicketMaster and Google.
+HTML, CSS, BOOTSTRAP, JQUERY, APIs (TicketMaster and Google)
 
 ## How to Install
 
